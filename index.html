@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Agenda Surat Keluar dan Masuk SDN 01 Sukaraja Dalam</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    h1, h2 {
+      color: #2c3e50;
+    }
+
+    .form-container {
+      background: #e8e8e8;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      margin: 5px;
+      padding: 6px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 6px 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background: #2c3e50;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Agenda Surat Keluar dan Masuk SDN 01 Sukaraja Dalam</h1>
+
+  <h2>Input Surat Keluar</h2>
+  <div class="form-container">
+    <input type="hidden" id="editIndexKeluar" value="">
+    <input type="date" id="tglKeluar" placeholder="Tanggal">
+    <input type="text" id="noKeluar" placeholder="Nomor Surat">
+    <input type="text" id="perihalKeluar" placeholder="Perihal">
+    <input type="text" id="tujuanKeluar" placeholder="Tujuan">
+    <button onclick="simpanSuratKeluar()">Simpan</button>
+  </div>
+
+  <h2>Input Surat Masuk</h2>
+  <div class="form-container">
+    <input type="hidden" id="editIndexMasuk" value="">
+    <input type="date" id="tglMasuk" placeholder="Tanggal">
+    <input type="text" id="noMasuk" placeholder="Nomor Surat">
+    <input type="text" id="perihalMasuk" placeholder="Perihal">
+    <input type="text" id="pengirimMasuk" placeholder="Pengirim">
+    <button onclick="simpanSuratMasuk()">Simpan</button>
+  </div>
+
+  <h2>Data Surat Keluar</h2>
+  <table id="tabelKeluar">
+    <thead>
+      <tr>
+        <th>Tanggal</th><th>Nomor Surat</th><th>Perihal</th><th>Tujuan</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Data Surat Masuk</h2>
+  <table id="tabelMasuk">
+    <thead>
+      <tr>
+        <th>Tanggal</th><th>Nomor Surat</th><th>Perihal</th><th>Pengirim</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    tampilkanData('keluar');
+    tampilkanData('masuk');
+  });
+
+  function simpanSuratKeluar() {
+    const data = {
+      tanggal: document.getElementById('tglKeluar').value,
+      nomor: document.getElementById('noKeluar').value,
+      perihal: document.getElementById('perihalKeluar').value,
+      tujuan: document.getElementById('tujuanKeluar').value
+    };
+    let keluar = JSON.parse(localStorage.getItem('suratKeluar') || '[]');
+    const editIndex = document.getElementById('editIndexKeluar').value;
+
+    if (editIndex !== "") {
+      keluar[editIndex] = data;
+      document.getElementById('editIndexKeluar').value = "";
+    } else {
+      keluar.push(data);
+    }
+
+    localStorage.setItem('suratKeluar', JSON.stringify(keluar));
+    resetFormKeluar();
+    tampilkanData('keluar');
+  }
+
+  function simpanSuratMasuk() {
+    const data = {
+      tanggal: document.getElementById('tglMasuk').value,
+      nomor: document.getElementById('noMasuk').value,
+      perihal: document.getElementById('perihalMasuk').value,
+      pengirim: document.getElementById('pengirimMasuk').value
+    };
+    let masuk = JSON.parse(localStorage.getItem('suratMasuk') || '[]');
+    const editIndex = document.getElementById('editIndexMasuk').value;
+
+    if (editIndex !== "") {
+      masuk[editIndex] = data;
+      document.getElementById('editIndexMasuk').value = "";
+    } else {
+      masuk.push(data);
+    }
+
+    localStorage.setItem('suratMasuk', JSON.stringify(masuk));
+    resetFormMasuk();
+    tampilkanData('masuk');
+  }
+
+  function tampilkanData(jenis) {
+    const data = JSON.parse(localStorage.getItem(jenis === 'keluar' ? 'suratKeluar' : 'suratMasuk') || '[]');
+    const tbody = document.querySelector(`#tabel${jenis.charAt(0).toUpperCase() + jenis.slice(1)} tbody`);
+    tbody.innerHTML = '';
+    data.forEach((d, i) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${d.tanggal}</td>
+        <td>${d.nomor}</td>
+        <td>${d.perihal}</td>
+        <td>${jenis === 'keluar' ? d.tujuan : d.pengirim}</td>
+        <td><button onclick="editData('${jenis}', ${i})">Edit</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function editData(jenis, index) {
+    const data = JSON.parse(localStorage.getItem(jenis === 'keluar' ? 'suratKeluar' : 'suratMasuk'));
+    const item = data[index];
+
+    if (jenis === 'keluar') {
+      document.getElementById('tglKeluar').value = item.tanggal;
+      document.getElementById('noKeluar').value = item.nomor;
+      document.getElementById('perihalKeluar').value = item.perihal;
+      document.getElementById('tujuanKeluar').value = item.tujuan;
+      document.getElementById('editIndexKeluar').value = index;
+    } else {
+      document.getElementById('tglMasuk').value = item.tanggal;
+      document.getElementById('noMasuk').value = item.nomor;
+      document.getElementById('perihalMasuk').value = item.perihal;
+      document.getElementById('pengirimMasuk').value = item.pengirim;
+      document.getElementById('editIndexMasuk').value = index;
+    }
+  }
+
+  function resetFormKeluar() {
+    document.getElementById('tglKeluar').value = '';
+    document.getElementById('noKeluar').value = '';
+    document.getElementById('perihalKeluar').value = '';
+    document.getElementById('tujuanKeluar').value = '';
+  }
+
+  function resetFormMasuk() {
+    document.getElementById('tglMasuk').value = '';
+    document.getElementById('noMasuk').value = '';
+    document.getElementById('perihalMasuk').value = '';
+    document.getElementById('pengirimMasuk').value = '';
+  }
+</script>
+</body>
+</html>
